@@ -49,7 +49,7 @@ def read_large_csv(file_path, columns, chunk_size=50000):
                     df_list.append(chunk)
                 else:
                     print(f"⚠️ Skipping chunk {i+1} due to column count mismatch. Expected {len(columns)}, got {chunk.shape[1]}.")
-            print(f"✅ CSV loading complete with encoding '{encoding}'!")
+            print(f"CSV loading complete with encoding '{encoding}'!")
             return pd.concat(df_list, ignore_index=True) # Successfully loaded, return DataFrame
         except UnicodeDecodeError:
             print(f"UnicodeDecodeError with encoding '{encoding}'. Trying next encoding...")
@@ -58,7 +58,7 @@ def read_large_csv(file_path, columns, chunk_size=50000):
             print(f"An error occurred while reading with encoding '{encoding}': {e}")
             df_list = [] # Clear df_list for the next encoding attempt
 
-    print("❌ Failed to load data with all attempted encodings. Check file path or data integrity.")
+    print("Failed to load data with all attempted encodings. Check file path or data integrity.")
     return pd.DataFrame(columns=columns) # Return an empty DataFrame with correct columns if all attempts fail
 
 # --- Text Cleaning Functions ---
@@ -105,7 +105,7 @@ def preprocess_text(df, text_column):
         for sentence in df[text_column]
     ]
     
-    print("✅ Text preprocessing complete!")
+    print(" Text preprocessing complete!")
     return cleaned_texts
 
 # --- AI Website Identification Function ---
@@ -120,7 +120,7 @@ def identify_ai_websites(df, text_column):
     Returns:
         pandas.DataFrame: The DataFrame with a new 'is_ai_related' boolean column.
     """
-    print("🔍 Identifying AI-related websites...")
+    print(" Identifying AI-related websites...")
     ai_keywords = [
         'ai', 'artificial intelligence', 'machine learning', 'deep learning',
         'neural network', 'robotics', 'natural language processing', 'nlp',
@@ -136,7 +136,7 @@ def identify_ai_websites(df, text_column):
     
     # Check if any keyword is present in the cleaned text (case-insensitive)
     df['is_ai_related'] = df[text_column].str.contains(pattern, case=False, na=False)
-    print("✅ AI website identification complete!")
+    print(" AI website identification complete!")
     return df
 
 # --- Website Clustering Function ---
@@ -157,13 +157,13 @@ def cluster_websites(df, text_column, n_clusters=10, max_features=5000):
             - TfidfVectorizer: The fitted TF-IDF vectorizer.
             - MiniBatchKMeans: The fitted MiniBatchKMeans model.
     """
-    print(f"🧠 Vectorizing text and clustering into {n_clusters} clusters...")
+    print(f"Vectorizing text and clustering into {n_clusters} clusters...")
     
     # Filter out empty strings before vectorization, as TF-IDF cannot process them
     non_empty_texts_series = df[df[text_column].str.strip() != ''][text_column]
     
     if non_empty_texts_series.empty:
-        print("❌ No non-empty text found for vectorization and clustering. All rows will be unclustered (-1).")
+        print(" No non-empty text found for vectorization and clustering. All rows will be unclustered (-1).")
         df['cluster_label'] = -1 # Assign a default label for no clusters
         return df, None, None
 
@@ -182,7 +182,7 @@ def cluster_websites(df, text_column, n_clusters=10, max_features=5000):
     # Assign cluster labels back to the original DataFrame, only for the rows that were clustered
     df.loc[non_empty_texts_series.index, 'cluster_label'] = cluster_labels
     
-    print("✅ Website clustering complete!")
+    print("Website clustering complete!")
     return df, vectorizer, model
 
 # --- Cluster Analysis Function ---
@@ -196,7 +196,7 @@ def analyze_clusters(df, vectorizer, kmeans_model): # Added kmeans_model as an a
         vectorizer (TfidfVectorizer): The fitted TF-IDF vectorizer.
         kmeans_model (MiniBatchKMeans): The fitted MiniBatchKMeans model.
     """
-    print("📊 Analyzing clusters...")
+    print("Analyzing clusters...")
     
     if 'cluster_label' not in df.columns or df['cluster_label'].isnull().all() or df['cluster_label'].nunique() <= 1:
         print("No meaningful clusters to analyze (or only one cluster).")
@@ -228,8 +228,8 @@ def analyze_clusters(df, vectorizer, kmeans_model): # Added kmeans_model as an a
         # Get the top 10 terms for the current cluster
         top_terms = [terms[ind] for ind in order_centroids[i, :10]]
         print(f"  Top terms: {', '.join(top_terms)}")
-        
-    print("✅ Cluster analysis complete!")
+
+    print("Cluster analysis complete!")
 
 # --- Main Execution Flow ---
 def main():
@@ -269,7 +269,7 @@ def main():
     print(f"Removed {initial_rows - rows_after_cleaning} rows with empty or non-meaningful text after cleaning.")
 
     if df.empty:
-        print("❌ All meaningful rows were removed after preprocessing. Check your data and preprocessing steps.")
+        print("All meaningful rows were removed after preprocessing. Check your data and preprocessing steps.")
         return
 
     # Step 4: Identify AI-related websites
@@ -287,17 +287,47 @@ def main():
         print("Exiting: Clustering could not be performed or resulted in an empty DataFrame/no clusters.")
         return
 
+
     # Step 6: Analyze clusters to differentiate AI content
-    # Pass the kmeans_model to analyze_clusters
-    analyze_clusters(df, vectorizer, kmeans_model) 
-    
+    analyze_clusters(df, vectorizer, kmeans_model)
+
+# Step 7: Save Results
+    save_cluster_results(df)
+
     print("\n--- Model Execution Summary ---")
     print("The DataFrame 'df' now contains the following new columns:")
     print("  - 'cleaned_text': Your preprocessed website content.")
     print("  - 'is_ai_related': A boolean flag indicating if the website talks about AI.")
     print("  - 'cluster_label': The assigned cluster ID for each website.")
-    print("\nYou can now further analyze the 'df' DataFrame to explore the clusters,")
-    print("filter for AI-related content within specific clusters, or visualize the results.")
+    print("\n Output files have been saved. You can now open them for review or visualization.")
+
+def save_cluster_results(df, output_dir='outputs'): 
+    """
+    Saves the full clustered DataFrame, AI-related websites, and non-AI websites into separate CSV files.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame with clustering and AI-related info.
+        output_dir (str): Folder to store the outputs.
+    """
+    import os
+    os.makedirs(output_dir, exist_ok=True)
+
+    full_output_path = os.path.join(output_dir, 'clustered_websites_all.csv')
+    ai_output_path = os.path.join(output_dir, 'ai_websites.csv')
+    non_ai_output_path = os.path.join(output_dir, 'non_ai_websites.csv')
+
+    # Save full DataFrame
+    df.to_csv(full_output_path, index=False)
+    print(f"Full clustered data saved to: {full_output_path}")
+
+    # Save AI-related websites
+    df[df['is_ai_related']].to_csv(ai_output_path, index=False)
+    print(f" AI-related websites saved to: {ai_output_path}")
+
+    # Save non-AI-related websites
+    df[~df['is_ai_related']].to_csv(non_ai_output_path, index=False)
+    print(f" Non-AI websites saved to: {non_ai_output_path}")
+
 
 if __name__ == "__main__":
     main()
