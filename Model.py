@@ -28,16 +28,12 @@ sns.set_palette("husl")
 
 class WebsiteAIClassifier:
     def __init__(self, sample_size=10000, test_size=0.2, random_state=42, max_features=5000):
-        """
-        Initialize the Website AI Classifier for model training and validation
-        """
+        """ Initialize the Website AI Classifier for model training and validation """
         self.sample_size = sample_size
-        self.test_size = test_size
-        self.random_state = random_state
-        self.max_features = max_features
-        self.vectorizer = None
-        self.classifier_model = None
-        self.cluster_model = None
+        # ... (all the other self.variable assignments) ...
+
+    # Add this line to call the downloader
+        self._download_nltk_data()
         
         # Enhanced AI keywords
         self.ai_keywords = [
@@ -52,15 +48,18 @@ class WebsiteAIClassifier:
         self._download_nltk_data()
 
     def _download_nltk_data(self):
-        """Download required NLTK data"""
-        for resource_name in ['stopwords', 'punkt']:
-            try:
-                nltk.data.find(f'tokenizers/{resource_name}')
-            except LookupError:
-                try:
-                    nltk.download(resource_name, quiet=True)
-                except Exception as e:
-                    print(f"Warning: Could not download {resource_name}: {e}")
+     """Checks for NLTK data and downloads it if missing."""
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        print("Stopwords not found. Downloading...")
+        nltk.download('stopwords')
+
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        print("Punkt not found. Downloading...")
+        nltk.download('punkt')
 
     def load_sample_data(self, file_path, columns):
         """Load a sample of data with improved memory management"""
