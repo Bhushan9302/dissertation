@@ -266,61 +266,62 @@ class WebsiteAIClassifier:
 
 
 def main():
-    """Main function to run the comprehensive workflow"""
+    """Main function updated to download from S3 and process in chunks."""
     print("Website AI Classification Workflow Initialized")
     print("=" * 50)
     
-    classifier = WebsiteAIClassifier(sample_size=20000, test_size=0.25, max_features=8000)
+    # Note: sample_size is removed to process the whole file
+    classifier = WebsiteAIClassifier(test_size=0.25, max_features=8000)
     
-    file_path = r"C:\Users\Admin\Downloads\Dissertation project\Model\Code\df202350.csv"
+    # --- PATHS ON THE EC2 INSTANCE ---
+    s3_bucket = "bhushan-dissertation-data-2025" # Your S3 bucket name
+    s3_filename = "df202350.csv" # The name of the file in your S3 bucket
+    local_filepath = s3_filename # Use the same name for the local file
+    output_dir = "model_outputs"
     required_columns = ['urls', 'domains', 'postcodes', 'data_source', 'text']
     
     try:
-        # 1. Load Data
-        df = classifier.load_sample_data(file_path, required_columns)
-        
-        # 2. Preprocess Text
-        df = classifier.preprocess_text(df, 'text')
-        
-        # 3. Filter out rows with no useful text
-        initial_count = len(df)
-        df.dropna(subset=['cleaned_text'], inplace=True)
-        df = df[df['cleaned_text'].str.strip() != '']
-        print(f"Removed {initial_count - len(df)} rows with empty text.")
-        
-        # 4. Identify AI sites using keywords (initial labeling)
-        df = classifier.identify_ai_websites(df, 'cleaned_text')
-        
-        # Show sample of found keywords
-        print("\nSample of AI websites and keywords found:")
-        print(df[df['is_ai_related']][['domains', 'found_ai_keywords']].head())
-        
-        # 5. Create Train/Test Split
-        X_train, X_test, y_train, y_test = classifier.create_balanced_train_test_split(
-            df, 'cleaned_text', 'is_ai_related'
+        # --- STEP 1: DOWNLOAD DATA FROM S3 ---
+        s3_path = f"s3://{s3_bucket}/{s3_filename}"
+        print(f"Downloading data from {s3_path} to the EC2 instance...")
+        # This command runs in the terminal to copy the file
+        os.system(f"aws s3 cp {s3_path} .")
+        print("Download complete.")
+
+        # --- STEP 2: PROCESS THE LOCAL CSV IN CHUNKS ---
+        chunk_reader = pd.read_csv(
+            local_filepath, header=None, chunksize=50000,
+            low_memory=False, on_bad_lines='skip', names=required_columns
         )
         
-        # 6. Vectorize Text
+        all_results_df = pd.DataFrame()
+        
+        print("Starting to process the dataset in chunks...")
+        for i, chunk_df in enumerate(chunk_reader):
+            print(f"--- Processing chunk {i+1} ---")
+            
+            processed_chunk = classifier.preprocess_text(chunk_df, 'text')
+            processed_chunk = processed_chunk[processed_chunk['cleaned_text'].str.strip() != ''].copy()
+            identified_chunk = classifier.identify_ai_websites(processed_chunk, 'cleaned_text')
+            all_results_df = pd.concat([all_results_df, identified_chunk], ignore_index=True)
+            
+        print("\nAll chunks processed successfully!")
+        
+        df = all_results_df
+
+        # --- The rest of the script continues as before ---
+        X_train, X_test, y_train, y_test = classifier.create_balanced_train_test_split(df, 'cleaned_text', 'is_ai_related')
         X_train_vec, X_test_vec = classifier.vectorize_text(X_train, X_test)
-        
-        # 7. Train Classifier
         classifier.train_classifier(X_train_vec, y_train)
-        
-        # 8. Evaluate Model and get metrics (including accuracy)
         metrics = classifier.evaluate_model(X_test_vec, y_test)
+        classifier.save_results(df, metrics, output_dir=output_dir)
         
-        # 9. Save Results
-        classifier.save_results(df, metrics)
-        
-        # 10. FINAL PERFORMANCE SUMMARY
-        print("\n" + "*"*23)
-        print("WORKFLOW COMPLETE")
-        if metrics and 'accuracy' in metrics:
-            print(f"Final Model Accuracy on Test Set: {metrics['accuracy']:.2%}")
-        print("*"*23)
-        
-    except FileNotFoundError as e:
-        print(f"ERROR: {e}")
+        # --- STEP 3: UPLOAD RESULTS BACK TO S3 ---
+        print(f"Uploading results to s3://{s3_bucket}/results/...")
+        os.system(f"aws s3 cp {output_dir} s3://{s3_bucket}/results/ --recursive")
+
+    except FileNotFoundError:
+        print(f"ERROR: Could not find the file '{local_filepath}'. Did the download from S3 fail?")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
     finally:
