@@ -48,7 +48,7 @@ class WebsiteAIClassifier:
         self._download_nltk_data()
 
     def _download_nltk_data(self):
-    """Checks for all required NLTK data and downloads any that are missing."""
+        """Checks for all required NLTK data and downloads any that are missing."""
     # A dictionary to manage all required packages and their types
     required_packages = {
         'corpora': ['stopwords'],
