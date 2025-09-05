@@ -48,18 +48,23 @@ class WebsiteAIClassifier:
         self._download_nltk_data()
 
     def _download_nltk_data(self):
-     """Checks for NLTK data and downloads it if missing."""
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        print("Stopwords not found. Downloading...")
-        nltk.download('stopwords')
-
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        print("Punkt not found. Downloading...")
-        nltk.download('punkt')
+    """Checks for all required NLTK data and downloads any that are missing."""
+    # A dictionary to manage all required packages and their types
+    required_packages = {
+        'corpora': ['stopwords'],
+        'tokenizers': ['punkt', 'punkt_tab']
+    }
+    
+    # Loop through the packages and download if missing
+    for resource_type, packages in required_packages.items():
+        for package in packages:
+            try:
+                # Check if the resource is available at its correct path
+                nltk.data.find(f'{resource_type}/{package}')
+            except LookupError:
+                print(f"NLTK package '{package}' not found. Downloading...")
+                # Download the package quietly to keep the output clean
+                nltk.download(package, quiet=True)
 
     def load_sample_data(self, file_path, columns):
         """Load a sample of data with improved memory management"""
