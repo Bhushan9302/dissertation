@@ -27,16 +27,20 @@ plt.style.use('default')
 sns.set_palette("husl")
 
 class WebsiteAIClassifier:
-    def __init__(self, sample_size=10000, test_size=0.2, random_state=42, max_features=5000):
-        """ Initialize the Website AI Classifier for model training and validation """
-        self.sample_size = sample_size
-        # ... (all the other self.variable assignments) ...
-
-    # Add this line to call the downloader
-        self._download_nltk_data()
+    def __init__(self, test_size=0.2, random_state=42, max_features=5000):
+     """ Initialize the Website AI Classifier for model training and validation"""
+    # self.sample_size is no longer needed
+     self.test_size = test_size
+     self.random_state = random_state
+     self.max_features = max_features
+     self.vectorizer = None
+     self.classifier_model = None
+     self.cluster_model = None
+ 
+     self._download_nltk_data()
         
         # Enhanced AI keywords
-        self.ai_keywords = [
+     self.ai_keywords = [
             'ai', 'artificial intelligence', 'machine learning', 'ml', 'deep learning',
             'neural network', 'neural networks', 'natural language processing', 'nlp',
             'computer vision', 'data science', 'predictive analytics', 'automation',
@@ -45,7 +49,7 @@ class WebsiteAIClassifier:
             'tensorflow', 'pytorch', 'scikit-learn', 'openai', 'anthropic', 'hugging face'
         ]
         
-        self._download_nltk_data()
+     self._download_nltk_data()
 
     def _download_nltk_data(self):
         """Checks for all required NLTK data and downloads any that are missing."""
@@ -276,7 +280,7 @@ def main():
     print("=" * 50)
     
     # Note: sample_size is removed to process the whole file
-    classifier = WebsiteAIClassifier(test_size=0.25, max_features=8000)
+    classifier = WebsiteAIClassifier(test_size=0.25, max_features=8000, random_state=42)
     
     # --- PATHS ON THE EC2 INSTANCE ---
     s3_bucket = "bhushan-dissertation-data-2025" # Your S3 bucket name
