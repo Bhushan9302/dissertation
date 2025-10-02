@@ -31,7 +31,7 @@ To run this script, you will need the following:
 1.  **Clone the Repository:**
     ```bash
     git clone [https://github.com/Bhushan9302/dissertation.git](https://github.com/Bhushan9302/dissertation.git)
-    cd YourRepoName
+    cd dissertation
     ```
 
 2.  **Install Dependencies:**
