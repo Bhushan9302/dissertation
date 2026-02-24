@@ -1,62 +1,183 @@
-# dissertation
-# Website AI Classifier
+# 📍 Mapping the Spatial Diffusion of AI in the UK
 
-This project implements a complete machine learning pipeline to classify websites based on their content, specifically identifying sites related to **Artificial Intelligence (AI)**, **Machine Learning (ML)**, and **Deep Learning (DL)**.
+This dissertation project implements an advanced **machine learning and spatial analysis pipeline** to model the adoption and diffusion of **Artificial Intelligence (AI)** across the United Kingdom.
 
-The solution is optimized for handling large datasets by utilizing a **chunking** and **stratified sampling** strategy, and includes a full workflow for data acquisition from **AWS S3** and results persistence back to S3.
+Moving beyond binary classification, this solution integrates:
+
+- **Unsupervised Topic Modeling (LDA)**
+- **Spatial Econometrics**
+- **Entity Resolution Techniques**
+- **Urban Hierarchy Theory**
+
+The objective is to empirically test geographic theories of innovation diffusion using high-fidelity firm-level data.
+
+---
 
 ## 🚀 Key Features
 
-* **Robust Data Acquisition:** Downloads the raw dataset directly from a specified AWS S3 bucket.
-* **Scalable Processing:** Uses Pandas **chunking** to process extremely large CSV files without overwhelming memory.
-* **AI Keyword Identification:** Initial classification based on an extensive list of AI/ML keywords (e.g., `LLM`, `GPT`, `TensorFlow`).
-* **Text Preprocessing:** Full NLP pipeline including cleaning, tokenization, and stop-word removal.
-* **Feature Engineering:** Utilizes **TF-IDF (Term Frequency-Inverse Document Frequency)** for effective text vectorization.
-* **Stratified Training:** Employs `StratifiedShuffleSplit` to ensure balanced class representation during model training.
-* **Model Persistence:** Saves the trained **Logistic Regression** model and the **TF-IDF Vectorizer** for future inference.
-* **Visual Evaluation:** Generates a **Confusion Matrix** and a class distribution plot to visualize performance.
-* **Cloud Persistence:** Uploads all results (models, datasets, and performance reports) back to S3.
+### 🏢 Firm-Level Entity Resolution
+Aggregates sub-pages into **Base Domains** to prevent overcounting and ensure each record represents a unique corporate entity.
+
+### 📍 Headquarters Proxy Modeling
+Implements a **frequency-based postcode proxy (Mode)** to statistically isolate the primary operational location from multiple scraped postcodes.
+
+### 🧠 Sectoral Discovery (LDA)
+Uses **Latent Dirichlet Allocation (LDA)** to uncover five distinct AI sub-sectors:
+
+- Management  
+- Commerce  
+- Engineering  
+- Infrastructure  
+- Automation  
+
+This confirms AI as a **General Purpose Technology (GPT)**.
+
+### ⚙️ Scalable NLP Pipeline
+Processes extremely large textual datasets using:
+
+- Pandas chunking  
+- Advanced tokenization  
+- Efficient memory management  
+
+### 🗺️ Spatial Unit Optimization
+Aggregates location data to the **UK Outcode (Postal District)** level to:
+
+- Reduce geocoding noise  
+- Preserve city-level analytical resolution  
+
+### 📊 Analytical Mapping
+Generates **Tableau-ready datasets** to visualize:
+
+- Hierarchical Diffusion  
+- Agglomeration Effects  
+- Urban Hierarchy Patterns  
+
+### 📈 Specialization Analysis
+Provides framework for calculating **Location Quotients (LQ)** to identify AI specialization hotspots.
+
+---
 
 ## 🛠️ Prerequisites
 
-To run this script, you will need the following:
+To run this project, you will need:
 
-1.  **Python 3.8+**
-2.  An **AWS EC2 Instance** (Recommended for memory handling)
-3.  **AWS CLI** configured on the EC2 instance with access to the specified S3 bucket.
-4.  The large dataset (`df202350.csv`) must be present in the S3 bucket.
+- Python 3.8+
+- `pandas`
+- `numpy`
+- `nltk`
+- `gensim`
+- `scikit-learn`
+- `matplotlib`
+- `seaborn`
+- Tableau Desktop or Tableau Public (for spatial visualization)
 
-## 📦 Installation and Setup
+⚠️ The large dataset (`ai_websites.csv`) must be present in the local directory or accessible via S3.
 
-1.  **Clone the Repository:**
-    ```bash
-    git clone [https://github.com/Bhushan9302/dissertation.git](https://github.com/Bhushan9302/dissertation.git)
-    cd dissertation
-    ```
+---
 
-2.  **Install Dependencies:**
-    ```bash
-    pip install pandas numpy nltk scikit-learn matplotlib seaborn joblib
-    ```
+## 📦 Installation & Setup
 
-3.  **Download NLTK Data:**
-    The script will automatically attempt to download the necessary NLTK packages (`stopwords` and `punkt`).
+### 1️⃣ Clone the Repository
+
+```bash
+git clone https://github.com/Bhushan9302/dissertation.git
+cd dissertation
+```
+
+### 2️⃣ Install Dependencies
+
+```bash
+pip install pandas numpy nltk gensim scikit-learn matplotlib seaborn
+```
+
+### 3️⃣ Download NLTK Data
+
+The script automatically downloads required NLTK packages:
+
+- `stopwords`
+- `punkt`
+
+---
 
 ## ⚙️ Configuration
 
-The primary configuration is done within the `main()` function:
+Primary configuration is handled inside the `run_topic_modeling()` function.
 
-| Variable | Description | Default Value |
-| :--- | :--- | :--- |
-| `s3_bucket` | Your AWS S3 bucket name. **Must be updated.** | `"bhushan-dissertation-data-2025"` |
-| `s3_filename` | The name of the input CSV file in your S3 bucket. | `"df202350.csv"` |
-| `test_size` | The proportion of data reserved for testing. | `0.25` |
-| `max_features` | The max vocabulary size for the TF-IDF vectorizer. | `8000` |
-| `output_dir` | Local folder where all outputs will be saved before S3 upload. | `"model_outputs"` |
+| Variable      | Description                                           | Default Value                         |
+|--------------|-------------------------------------------------------|---------------------------------------|
+| INPUT_FILE   | Path to raw scraped CSV dataset                       | `"ai_websites.csv"`                   |
+| num_topics   | Number of sub-sectors to discover via LDA             | `5`                                   |
+| passes       | Number of training passes for the LDA model           | `5`                                   |
+| chunk_size   | Rows processed per memory cycle                       | `1500`                                |
+| OUTPUT_FILE  | Final CSV optimized for Tableau mapping               | `"ai_firms_with_topics.csv"`          |
+
+---
 
 ## ▶️ How to Run the Script
 
-Run the main Python file from your EC2 terminal:
+Execute the topic modeling pipeline from your terminal:
 
 ```bash
-python model.py
+python Topic_Modeling.py
+```
+
+---
+
+## 📚 Theoretical Frameworks Tested
+
+This project empirically evaluates three core academic pillars:
+
+### 1️⃣ Hierarchical Diffusion
+Tests whether AI adoption "jumps" from major hubs (e.g., London) to secondary cities.
+
+### 2️⃣ Epidemic Effects
+Maps geographic clustering formed through proximity and knowledge spillovers.
+
+### 3️⃣ GPT Pervasiveness
+Demonstrates AI's penetration across diverse and unrelated economic sectors.
+
+---
+
+## 🏙️ Research Contribution
+
+This dissertation bridges:
+
+- Machine Learning  
+- Economic Geography  
+- Innovation Theory  
+- Spatial Econometrics  
+
+It delivers a **replicable, scalable, and theory-driven framework** for analyzing technological diffusion at firm-level spatial resolution.
+
+---
+
+## 📌 Output
+
+The final output file:
+
+```
+ai_firms_with_topics.csv
+```
+
+is fully optimized for:
+
+- Tableau visualization  
+- Spatial econometric modeling  
+- Location Quotient analysis  
+- Urban hierarchy mapping  
+
+---
+
+## 📜 License
+
+This project is for academic research purposes.  
+Please cite appropriately if used in further research.
+
+---
+
+## 👤 Author
+
+Bhushan  
+
+MSc Dissertation Project  
+Mapping the Spatial Diffusion of AI in the UK  
