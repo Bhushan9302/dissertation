@@ -1,0 +1,9 @@
+python-pptx
+pandas
+numpy
+nltk
+gensim
+scikit-learn
+matplotlib
+seaborn
+pgeocode
